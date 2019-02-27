@@ -33,7 +33,7 @@ int main (int argc, char *argv[])
     float *d_A1, *d_B1, *d_C1;
     float *d_A2, *d_B2, *d_C2;
     size_t A_sz, B_sz, C_sz;
-    unsigned VecSize;
+    unsigned int VecSize;
 
     cudaStream_t stream0, stream1, stream2;
     cudaStreamCreate(&stream0);
@@ -88,7 +88,7 @@ int main (int argc, char *argv[])
     printf("Launching kernel..."); fflush(stdout);
     startTime(&timer);
     unsigned int i;
-    for(i = 0; i < VecSize; i += SegSize * StreamNum)
+    for(i = 0; VecSize - i >= SegSize * StreamNum; i += SegSize * StreamNum)
     {
         cudaMemcpyAsync(d_A0, h_A + i, SegSize * sizeof(float), cudaMemcpyHostToDevice, stream0);
         cudaMemcpyAsync(d_B0, h_B + i, SegSize * sizeof(float), cudaMemcpyHostToDevice, stream0);
@@ -108,7 +108,7 @@ int main (int argc, char *argv[])
 
     // deal with the left data
 
-    i -= SegSize * StreamNum;
+    //i -= SegSize * StreamNum;
     if(leftNum > 2 * SegSize)
     {
         cudaMemcpyAsync(d_A0, h_A + i, SegSize * sizeof(float), cudaMemcpyHostToDevice, stream0);
