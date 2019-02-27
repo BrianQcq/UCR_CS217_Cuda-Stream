@@ -11,7 +11,6 @@
 #include "kernel.cu"
 #include "support.cu"
 
-#define SegSize 512
 #define StreamNum 3
 #define BlockSize 512
 
@@ -52,6 +51,7 @@ int main (int argc, char *argv[])
     A_sz = VecSize;
     B_sz = VecSize;
     C_sz = VecSize;
+    const int SegSize = VecSize / StreamNum;
     int leftNum = VecSize % (SegSize * StreamNum);
     cudaHostAlloc((void**)&h_A, A_sz*sizeof(float), cudaHostAllocDefault);
     for (unsigned int i=0; i < A_sz; i++) { h_A[i] = (rand()%100)/100.00; }
@@ -97,9 +97,9 @@ int main (int argc, char *argv[])
         cudaMemcpyAsync(d_A2, h_A + i + 2 * SegSize, SegSize * sizeof(float), cudaMemcpyHostToDevice, stream2);
         cudaMemcpyAsync(d_B2, h_B + i + 2 * SegSize, SegSize * sizeof(float), cudaMemcpyHostToDevice, stream2);
 
-        VecAdd<<<SegSize / BlockSize, BlockSize, 0, stream0>>>(d_A0, d_B0, d_C0, SegSize);
-        VecAdd<<<SegSize / BlockSize, BlockSize, 0, stream1>>>(d_A1, d_B1, d_C1, SegSize);
-        VecAdd<<<SegSize / BlockSize, BlockSize, 0, stream2>>>(d_A2, d_B2, d_C2, SegSize);
+        VecAdd<<<(SegSize - 1) / BlockSize + 1, BlockSize, 0, stream0>>>(d_A0, d_B0, d_C0, SegSize);
+        VecAdd<<<(SegSize - 1) / BlockSize + 1, BlockSize, 0, stream1>>>(d_A1, d_B1, d_C1, SegSize);
+        VecAdd<<<(SegSize - 1) / BlockSize + 1, BlockSize, 0, stream2>>>(d_A2, d_B2, d_C2, SegSize);
 
         cudaMemcpyAsync(h_C + i, d_C0, SegSize * sizeof(float), cudaMemcpyDeviceToHost, stream0);
         cudaMemcpyAsync(h_C + i + SegSize, d_C1, SegSize * sizeof(float), cudaMemcpyDeviceToHost, stream1);
