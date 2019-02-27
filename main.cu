@@ -60,7 +60,7 @@ int main (int argc, char *argv[])
     cudaHostAlloc((void**)&h_C, C_sz*sizeof(float), cudaHostAllocDefault);
 
     stopTime(&timer); printf("%f s\n", elapsedTime(timer));
-    printf("size of vector: %u x 1\n  ", VecSize);
+    printf("size of vector: %u x %u\n", VecSize);
     
     // Allocate device variables ----------------------------------------------
 
@@ -87,7 +87,7 @@ int main (int argc, char *argv[])
     // Launch kernel  ---------------------------
     printf("Launching kernel..."); fflush(stdout);
     startTime(&timer);
-    int i;
+    unsigned int i;
     for(i = 0; i < VecSize; i += SegSize * StreamNum)
     {
         cudaMemcpyAsync(d_A0, h_A + i, SegSize * sizeof(float), cudaMemcpyHostToDevice, stream0);
@@ -177,5 +177,9 @@ int main (int argc, char *argv[])
     cudaFreeHost(h_B);
     cudaFreeHost(h_C);
 
+    cudaStreamDestroy(stream0);
+    cudaStreamDestroy(stream1);
+    cudaStreamDestroy(stream2);
+    
     return 0;
 }
