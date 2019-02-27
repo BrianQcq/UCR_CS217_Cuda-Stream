@@ -108,7 +108,6 @@ int main (int argc, char *argv[])
 
     // deal with the left data
 
-    //i -= SegSize * StreamNum;
     if(leftNum > 2 * SegSize)
     {
         cudaMemcpyAsync(d_A0, h_A + i, SegSize * sizeof(float), cudaMemcpyHostToDevice, stream0);
