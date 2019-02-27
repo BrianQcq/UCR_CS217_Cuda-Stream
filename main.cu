@@ -60,7 +60,7 @@ int main (int argc, char *argv[])
     cudaHostAlloc((void**)&h_C, C_sz*sizeof(float), cudaHostAllocDefault);
 
     stopTime(&timer); printf("%f s\n", elapsedTime(timer));
-    printf("size Of vector: %u x 1\n  ", VecSize);
+    printf("size of vector: %u x 1\n  ", VecSize);
     
     // Allocate device variables ----------------------------------------------
 
@@ -107,6 +107,7 @@ int main (int argc, char *argv[])
     }
 
     // deal with the left data
+
     i -= SegSize * StreamNum;
     if(leftNum > 2 * SegSize)
     {
