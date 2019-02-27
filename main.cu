@@ -84,18 +84,7 @@ int main (int argc, char *argv[])
     
     cudaDeviceSynchronize();
     stopTime(&timer); printf("%f s\n", elapsedTime(timer));
-    /*
-    // Copy host variables to device ------------------------------------------
-
-    printf("Copying data from host to device..."); fflush(stdout);
-    startTime(&timer);
-
-    cudaMemcpy(A_d, A_h, sizeof(float)*A_sz, cudaMemcpyHostToDevice);
-    cudaMemcpy(B_d, B_h, sizeof(float)*B_sz, cudaMemcpyHostToDevice);
-
-    cudaDeviceSynchronize();
-    stopTime(&timer); printf("%f s\n", elapsedTime(timer));
-    */
+    
     // Launch kernel  ---------------------------
     printf("Launching kernel..."); fflush(stdout);
     startTime(&timer);
