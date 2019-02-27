@@ -53,7 +53,6 @@ int main (int argc, char *argv[])
     B_sz = VecSize;
     C_sz = VecSize;
     int leftNum = VecSize % (SegSize * StreamNum);
-
     cudaHostAlloc((void**)&h_A, A_sz*sizeof(float), cudaHostAllocDefault);
     for (unsigned int i=0; i < A_sz; i++) { h_A[i] = (rand()%100)/100.00; }
     cudaHostAlloc((void**)&h_B, B_sz*sizeof(float), cudaHostAllocDefault);
@@ -61,7 +60,7 @@ int main (int argc, char *argv[])
     cudaHostAlloc((void**)&h_C, C_sz*sizeof(float), cudaHostAllocDefault);
 
     stopTime(&timer); printf("%f s\n", elapsedTime(timer));
-    printf("    size Of vector: %u x 1\n  ", VecSize);
+    printf("size Of vector: %u x 1\n  ", VecSize);
     
     // Allocate device variables ----------------------------------------------
 
@@ -102,14 +101,11 @@ int main (int argc, char *argv[])
         VecAdd<<<SegSize / BlockSize, BlockSize, 0, stream1>>>(d_A1, d_B1, d_C1, SegSize);
         VecAdd<<<SegSize / BlockSize, BlockSize, 0, stream2>>>(d_A2, d_B2, d_C2, SegSize);
 
-        cudaStreamSynchronize(stream0);
         cudaMemcpyAsync(h_C + i, d_C0, SegSize * sizeof(float), cudaMemcpyDeviceToHost, stream0);
-        cudaStreamSynchronize(stream1);
         cudaMemcpyAsync(h_C + i + SegSize, d_C1, SegSize * sizeof(float), cudaMemcpyDeviceToHost, stream1);
-        cudaStreamSynchronize(stream2);
         cudaMemcpyAsync(h_C + i + 2 * SegSize, d_C2, SegSize * sizeof(float), cudaMemcpyDeviceToHost, stream2);
     }
-    
+
     // deal with the left data
     i -= SegSize * StreamNum;
     if(leftNum > 2 * SegSize)
@@ -125,11 +121,8 @@ int main (int argc, char *argv[])
         VecAdd<<<1, BlockSize, 0, stream1>>>(d_A1, d_B1, d_C1, SegSize);
         VecAdd<<<1, leftNum - 2 * SegSize, 0, stream2>>>(d_A2, d_B2, d_C2, leftNum - 2 * SegSize);
 
-        cudaStreamSynchronize(stream0);
         cudaMemcpyAsync(h_C + i, d_C0, SegSize * sizeof(float), cudaMemcpyDeviceToHost, stream0);
-        cudaStreamSynchronize(stream1);
         cudaMemcpyAsync(h_C + i + SegSize, d_C1, SegSize * sizeof(float), cudaMemcpyDeviceToHost, stream1);
-        cudaStreamSynchronize(stream2);
         cudaMemcpyAsync(h_C + i + 2 * SegSize, d_C2, (leftNum - 2 * SegSize) * sizeof(float), cudaMemcpyDeviceToHost, stream2);
     }
     else if(leftNum > SegSize && leftNum <= 2*SegSize)
@@ -142,9 +135,7 @@ int main (int argc, char *argv[])
         VecAdd<<<1, BlockSize, 0, stream0>>>(d_A0, d_B0, d_C0, SegSize);
         VecAdd<<<1, leftNum - SegSize, 0, stream1>>>(d_A1, d_B1, d_C1, leftNum - SegSize);
 
-        cudaStreamSynchronize(stream0);
         cudaMemcpyAsync(h_C + i, d_C0, SegSize * sizeof(float), cudaMemcpyDeviceToHost, stream0);
-        cudaStreamSynchronize(stream1);
         cudaMemcpyAsync(h_C + i + SegSize, d_C1, (leftNum - SegSize) * sizeof(float), cudaMemcpyDeviceToHost, stream1);
     }
     else if(leftNum > 0 && leftNum <= SegSize)
@@ -154,10 +145,11 @@ int main (int argc, char *argv[])
 
         VecAdd<<<1, leftNum, 0, stream0>>>(d_A0, d_B0, d_C0, leftNum);
 
-        cudaStreamSynchronize(stream0);
         cudaMemcpyAsync(h_C + i, d_C0, leftNum * sizeof(float), cudaMemcpyDeviceToHost, stream0);
     }
-    
+    cudaStreamSynchronize(stream0);
+    cudaStreamSynchronize(stream1);
+    cudaStreamSynchronize(stream2);
     cuda_ret = cudaDeviceSynchronize();
 	if(cuda_ret != cudaSuccess) FATAL("Unable to launch kernel");
     stopTime(&timer); printf("%f s\n", elapsedTime(timer));
@@ -183,5 +175,6 @@ int main (int argc, char *argv[])
     cudaFreeHost(h_A);
     cudaFreeHost(h_B);
     cudaFreeHost(h_C);
+
     return 0;
 }
